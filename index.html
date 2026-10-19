@@ -3,11 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-</head>
-<body>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
 <title>Hlasový kľúč</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<meta name="theme-color" content="#0c1018">
+<meta name="theme-color" content="#0c1018" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f3f5f9" media="(prefers-color-scheme: light)">
+<meta name="description" content="Biometrické heslo pomocou hlasu – registrácia vety a overenie hovoriaceho priamo v prehliadači.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon.png">
+<meta name="apple-mobile-web-app-title" content="Hlasový kľúč">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -134,6 +139,8 @@ footer{margin-top:20px;color:var(--mute);font-size:12px;text-align:center}
 .toast.err{border-color:var(--bad)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <header>
@@ -627,6 +634,8 @@ async function processAudio(y) {
       if (!getTpl()) throw new Error('Najprv zaregistruj heslo.');
       last = VC.extract(y);
       const r = renderResult(); addHistory(r);
+      try { $('#verdict').scrollIntoView({block: 'nearest', behavior: reduce ? 'auto' : 'smooth'}); } catch (_) {}
+      try { navigator.vibrate && navigator.vibrate(r.ok ? 40 : [60, 60, 60]); } catch (_) {}
       setState(r.ok ? '<b>Overené.</b> Môžeš skúsiť znova.' : '<b>Neoverené.</b> Skús to znova.');
     }
   } catch (e) {

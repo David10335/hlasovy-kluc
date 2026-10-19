@@ -28,3 +28,18 @@ Na datasete (vety z 3 slov, 6 hovoriacich, simulované mikrofóny):
 | ten istý človek, iná veta | 1,7 % |
 
 Prah zhody hlasu 0,93 zodpovedá bodu EER na tomto datasete.
+
+## Inštalácia do telefónu
+
+- **iPhone (Safari):** Zdieľať → *Pridať na plochu*
+- **Android (Chrome):** ⋮ → *Pridať na plochu* / *Inštalovať aplikáciu*
+
+Aplikácia sa potom otvára na celú obrazovku ako bežná aplikácia.
+
+## Obmedzenia
+
+- **Prehratie nahrávky (replay attack):** systém nerozlíši živý hlas od kvalitnej nahrávky toho istého človeka. Obranou by bola náhodná výzva (používateľ povie vetu, ktorú vygeneruje systém) alebo detekcia živosti (*liveness detection*).
+- **Imitácia a deepfake:** rozpoznanie hlasu je založené na spektrálnych štatistikách, nie na neurónovej sieti. Zručný imitátor alebo syntetický hlas môže mať vyššiu šancu na úspech ako bežný útočník.
+- **Šum a mikrofón:** v hlučnom prostredí alebo s iným mikrofónom ako pri registrácii je skóre nižšie. Šablóna sa preto ukladá zvlášť pre každé zariadenie.
+- **Krátke vety** sa rozlišujú horšie. Odporúča sa veta s 5–6 slovami.
+- **Úložisko:** šablóna je v `localStorage` prehliadača. Vymazaním dát prehliadača sa stratí.
