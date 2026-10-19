@@ -1,6 +1,6 @@
 # Hlasový kľúč
 
-Biometrické heslo pomocou hlasu – projekt na predmet BIKS (TUKE).
+Biometrické heslo pomocou hlasu – projekt na predmet BSB (TUKE).
 
 **Spustenie:** https://david10335.github.io/hlasovy-kluc/
 
