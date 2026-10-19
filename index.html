@@ -146,7 +146,7 @@ footer{margin-top:20px;color:var(--mute);font-size:12px;text-align:center}
   <header>
     <div class="brand">
       <div class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4"/></svg></div>
-      <div><h1>Hlasový kľúč</h1><p>Heslo, ktoré je tvojím hlasom</p></div>
+      <div><h1>Hlasový kľúč</h1><p>Heslo, ktorým je tvoj hlas</p></div>
     </div>
     <div class="userbox">
       <label for="user" class="sub" style="margin:0">Používateľ</label>
@@ -194,7 +194,7 @@ footer{margin-top:20px;color:var(--mute);font-size:12px;text-align:center}
         <div class="strict">
           <label for="strict">Prísnosť</label>
           <input type="range" id="strict" min="0.7" max="1.3" step="0.01" value="1">
-          <b id="strictV" style="font-family:var(--mono);font-weight:500">1.00</b>
+          <b id="strictV" style="font-family:var(--mono);font-weight:500">1,00</b>
           <div class="ends"><span>prísnejšie</span><span>benevolentnejšie</span></div>
         </div>
       </div>
@@ -221,7 +221,7 @@ footer{margin-top:20px;color:var(--mute);font-size:12px;text-align:center}
           <li><div><b>Detekcia reči</b><p>Ticho a šum sa odstránia, ďalej sa spracúvajú iba rečové úseky v 10 ms rámcoch.</p></div></li>
           <li><div><b>Obsah vety · MFCC + DTW</b><p>Kepstrálne koeficienty sa porovnajú dynamickým časovým zarovnaním. Prah sa kalibruje nahrávkami prehranými odzadu.</p></div></li>
           <li><div><b>Odtlačok hlasu</b><p>Kepstrá v pásme 60–4000 Hz sa normalizujú voči hlasom iných ľudí. Priemer a rozptyl tvoria 32-rozmerný vektor, skóre je kosínusová podobnosť.</p></div></li>
-          <li><div><b>Rozhodnutie</b><p>Prístup sa povolí iba vtedy, keď sedí veta, hlas aj výška hlasu.</p></div></li>
+          <li><div><b>Rozhodnutie</b><p>Prístup sa povolí iba vtedy, keď sa zhodujú veta, hlas aj výška hlasu.</p></div></li>
         </ol>
       </section>
     </aside>
@@ -393,7 +393,7 @@ const VC = (() => {
 
     const {mask, snr} = speechMask(y);
     const nSpeech = mask.filter(Boolean).length;
-    if (nSpeech < 50) throw new Error('Zachytených menej ako 0,5 s reči – hovor bližšie alebo hlasnejšie.');
+    if (nSpeech < 50) throw new Error('Zachytilo sa menej ako pol sekundy reči – hovor bližšie alebo hlasnejšie.');
     if (snr < 15) throw new Error(`Príliš veľa šumu (odstup ${snr.toFixed(0)} dB) – skús to v tichšom prostredí.`);
 
     const pre = new Float64Array(y.length); pre[0] = y[0];
@@ -522,6 +522,7 @@ function packTpl(t) {           // zaokrúhlenie, aby sa šablóna zmestila do �
 function toast(msg, err) { const t = $('#toast'); t.textContent = msg; t.className = 'toast on' + (err ? ' err' : ''); clearTimeout(t._h); t._h = setTimeout(() => t.className = 'toast', 4000); }
 const setState = h => $('#state').innerHTML = h;
 const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const fx = (x, d) => x.toFixed(d).replace('.', ',');   // slovenská desatinná čiarka
 const fmtDate = ms => new Date(ms).toLocaleString('sk-SK', {day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'});
 
 function setMode(m) {
@@ -551,10 +552,10 @@ function renderProfile() {
   $('#pSub').textContent = `${t.user} · zaregistrované ${fmtDate(t.created)}`;
   $('#profile').innerHTML = `<div class="kv">
     <span>Výška hlasu (F0)</span><b>${f0.toFixed(0)} Hz</b>
-    <span>Dĺžka hesla</span><b>${len.toFixed(2)} s reči</b>
-    <span>Prah zhody vety</span><b>≤ ${t.thresholds.content.toFixed(3)}</b>
-    <span>Prah zhody hlasu</span><b>≥ ${(t.thresholds.speaker * 100).toFixed(1)} %</b>
-    <span>Tolerancia výšky</span><b>± ${t.thresholds.f0.toFixed(1)} poltónu</b></div>` +
+    <span>Dĺžka hesla</span><b>${fx(len, 2)} s reči</b>
+    <span>Prah zhody vety</span><b>≤ ${fx(t.thresholds.content, 3)}</b>
+    <span>Prah zhody hlasu</span><b>≥ ${fx(t.thresholds.speaker * 100, 1)} %</b>
+    <span>Tolerancia výšky</span><b>± ${fx(t.thresholds.f0, 0)} poltóny</b></div>` +
     (t.warnings || []).map(w => `<div class="warn">${w}</div>`).join('');
 }
 $('#user').addEventListener('change', () => { enroll = []; renderSlots(); last = null; renderResult(); renderProfile(); setMode(getTpl() ? 'verify' : 'enroll'); });
@@ -565,7 +566,7 @@ $('#delYes').onclick = () => { const all = loadAll(); delete all[user()]; saveAl
 function renderSlots() {
   $('#slots').innerHTML = Array.from({length: N_ENROLL}, (_, i) => {
     const s = enroll[i], cls = s ? 'slot done' : (i === enroll.length ? 'slot next' : 'slot');
-    const v = s ? `${s.f.speech_sec.toFixed(1)} s · ${s.f.f0.toFixed(0)} Hz` : (i === enroll.length ? 'na rade' : '—');
+    const v = s ? `${fx(s.f.speech_sec, 1)} s · ${s.f.f0.toFixed(0)} Hz` : (i === enroll.length ? 'na rade' : '—');
     return `<div class="${cls}"><div class="n">${s ? '✓ ' : ''}Vzorka ${i + 1}</div><div class="v">${v}</div></div>`;
   }).join('');
 }
@@ -590,9 +591,9 @@ function renderResult() {
   $('#vD').textContent = r.ok ? `Veta aj hlas zodpovedajú používateľovi ${tpl.user}.` : 'Dôvod: ' + Object.keys(c).filter(k => !c[k]).map(k => why[k]).join(', ') + '.';
   const sc = s => (s - 0.6) / 0.4;
   $('#metrics').innerHTML =
-    metricRow('Zhoda vety', c.content, 1 - x.content / (2 * t.content), .5, `${x.content.toFixed(2)} / ${t.content.toFixed(2)}`) +
-    metricRow('Zhoda hlasu', c.speaker, sc(x.speaker), sc(t.speaker), `${(x.speaker * 100).toFixed(1)} / ${(t.speaker * 100).toFixed(1)} %`) +
-    metricRow('Výška hlasu', c.f0, 1 - x.f0_diff / (2 * t.f0), .5, `${x.f0.toFixed(0)} Hz · ref ${x.f0_ref.toFixed(0)}`) +
+    metricRow('Zhoda vety', c.content, 1 - x.content / (2 * t.content), .5, `${fx(x.content, 2)} / ${fx(t.content, 2)}`) +
+    metricRow('Zhoda hlasu', c.speaker, sc(x.speaker), sc(t.speaker), `${fx(x.speaker * 100, 1)} / ${fx(t.speaker * 100, 1)} %`) +
+    metricRow('Výška hlasu', c.f0, 1 - x.f0_diff / (2 * t.f0), .5, `${x.f0.toFixed(0)} Hz · ref. ${x.f0_ref.toFixed(0)}`) +
     metricRow('Dĺžka vety', c.duration, 1 - Math.abs(Math.log(x.dur_ratio)) / (2 * Math.log(1.6)), .5, `${(x.dur_ratio * 100).toFixed(0)} %`);
   return r;
 }
@@ -600,9 +601,9 @@ function addHistory(r) {
   history.unshift({t: new Date().toLocaleTimeString('sk-SK'), r});
   $('#hist').innerHTML = history.slice(0, 50).map(h => `<div class="h"><span class="tm">${h.t}</span>
     <span class="r ${h.r.ok ? 'ok' : 'bad'}">${h.r.ok ? 'Povolené' : 'Zamietnuté'}</span>
-    <span class="sc">hlas ${(h.r.values.speaker * 100).toFixed(1)} %</span></div>`).join('');
+    <span class="sc">hlas ${fx(h.r.values.speaker * 100, 1)} %</span></div>`).join('');
 }
-$('#strict').oninput = e => { $('#strictV').textContent = (+e.target.value).toFixed(2); renderResult(); };
+$('#strict').oninput = e => { $('#strictV').textContent = fx(+e.target.value, 2); renderResult(); };
 
 /* ---------------- spracovanie ---------------- */
 async function to16k(buf, sr) {
@@ -671,7 +672,7 @@ async function startRec() {
   $('#mic').classList.add('rec'); $('#mic').setAttribute('aria-label', 'Zastaviť nahrávanie');
   setState('<b>Počúvam…</b> hovor teraz'); tick();
 }
-function tick() { if (!recording) return; $('#hint').textContent = `${((performance.now() - t0) / 1000).toFixed(1)} s · zastaví sa samo po odmlke`; requestAnimationFrame(tick); }
+function tick() { if (!recording) return; $('#hint').textContent = `${fx((performance.now() - t0) / 1000, 1)} s · zastaví sa samo po odmlke`; requestAnimationFrame(tick); }
 async function stopRec() {
   if (!recording) return;
   recording = false;
@@ -688,7 +689,7 @@ async function stopRec() {
 function micUnavailable(msg) {
   const n = $('#micNotice');
   n.hidden = false;
-  n.innerHTML = `${msg} Môžeš nahrať heslo do Diktafónu alebo inej aplikácie a vybrať súbor cez <b>„alebo vyber zvukový súbor“</b>. Pre priame nahrávanie otvor aplikáciu na vlastnej HTTPS adrese.`;
+  n.innerHTML = `${msg} Heslo môžeš nahrať v Diktafóne alebo inej aplikácii a potom ho vybrať cez <b>„alebo vyber zvukový súbor“</b>. Pre priame nahrávanie otvor aplikáciu na vlastnej HTTPS adrese.`;
   toast(msg, true);
 }
 $('#mic').onclick = () => { if (busy) return; recording ? stopRec() : startRec(); };
