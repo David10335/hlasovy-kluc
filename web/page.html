@@ -1,0 +1,548 @@
+<title>Hlasový kľúč</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0c1018">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column on phones (stage → verdict → profile); two columns from 900px. Dark-first, light mirror. */
+:root{
+  --bg:#0c1018; --bg2:#10161f; --card:#141b26; --card2:#1a2331; --line:#232e3d; --line2:#2e3b4e;
+  --ink:#e9eef6; --ink2:#a8b3c3; --mute:#717e92;
+  --accent:#5b8cff; --accent-ink:#ffffff; --accent-soft:rgba(91,140,255,.12);
+  --ok:#2fbf71; --ok-soft:rgba(47,191,113,.13); --bad:#ef5b5b; --bad-soft:rgba(239,91,91,.13); --warn:#e9b04a; --warn-soft:rgba(233,176,74,.1);
+  --glow:rgba(91,140,255,.10);
+  --sans:"Figtree","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  --mono:"IBM Plex Mono","Cascadia Mono",Consolas,ui-monospace,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#f3f5f9; --bg2:#e9edf4; --card:#ffffff; --card2:#f1f4f9; --line:#dde3ec; --line2:#cbd3df;
+  --ink:#121826; --ink2:#3f4a5c; --mute:#6a7587; --accent:#2f5fe0; --accent-soft:rgba(47,95,224,.09);
+  --ok:#14834a; --ok-soft:rgba(20,131,74,.09); --bad:#cc3434; --bad-soft:rgba(204,52,52,.08); --warn:#9a6a08; --warn-soft:rgba(154,106,8,.08);
+  --glow:rgba(47,95,224,.07); color-scheme:light } }
+:root[data-theme="light"]{
+  --bg:#f3f5f9; --bg2:#e9edf4; --card:#ffffff; --card2:#f1f4f9; --line:#dde3ec; --line2:#cbd3df;
+  --ink:#121826; --ink2:#3f4a5c; --mute:#6a7587; --accent:#2f5fe0; --accent-soft:rgba(47,95,224,.09);
+  --ok:#14834a; --ok-soft:rgba(20,131,74,.09); --bad:#cc3434; --bad-soft:rgba(204,52,52,.08); --warn:#9a6a08; --warn-soft:rgba(154,106,8,.08);
+  --glow:rgba(47,95,224,.07); color-scheme:light }
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{margin:0;font:15px/1.5 var(--sans);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:16px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:11px;flex:1 1 220px;min-width:0}
+.mark{width:36px;height:36px;border-radius:10px;background:var(--accent);display:grid;place-items:center;flex:none}
+.brand h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.1px;text-wrap:balance}
+.brand p{margin:0;color:var(--mute);font-size:12.5px}
+.userbox{display:flex;align-items:center;gap:8px;flex:1 1 280px;justify-content:flex-end;min-width:0}
+.userbox select,.addform input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line2);border-radius:10px;padding:8px 11px;outline:none;color:var(--ink)}
+.userbox select{max-width:200px;cursor:pointer}
+.userbox select:focus,.addform input:focus{border-color:var(--accent)}
+.iconbtn{width:36px;height:36px;flex:none;border-radius:10px;border:1px solid var(--line2);background:var(--card);color:var(--ink2);display:grid;place-items:center;cursor:pointer}
+.iconbtn:hover{color:var(--ink);border-color:var(--accent)}
+.iconbtn.del:hover{color:var(--bad);border-color:var(--bad)}
+.people{display:grid;gap:6px}
+.person{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:6px 6px 6px 8px;background:var(--bg2)}
+.person.on{border-color:var(--accent);background:var(--accent-soft)}
+.person .pick{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:none;text-align:left;cursor:pointer;padding:2px}
+.av{width:32px;height:32px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;background:var(--accent)}
+.person.pending .av{background:var(--mute)}
+.person b{display:block;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.person small{display:block;color:var(--mute);font-size:12px}
+.person .confirm{margin:0;flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 6px;border:0;background:none}
+.person.deleting{border-color:var(--bad);background:var(--bad-soft)}
+.person .confirm .row{margin:0}
+.addform{display:flex;gap:8px;margin-top:12px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.btn.primary:hover{color:#fff;filter:brightness(1.08)}
+.badge{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);color:var(--ink2);white-space:nowrap}
+.badge.ok{color:var(--ok);border-color:currentColor;background:var(--ok-soft)}
+.badge.warn{color:var(--warn);border-color:currentColor;background:var(--warn-soft)}
+
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media (min-width:900px){.grid{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:18px;align-items:start}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}
+.card h2{margin:0;font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--ink2)}
+.sub{color:var(--mute);font-size:12.5px;margin:2px 0 12px}
+.col{display:grid;gap:14px;min-width:0}
+
+.tabs{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+.tabs button{flex:1;border:0;background:transparent;padding:9px 12px;border-radius:9px;color:var(--ink2);cursor:pointer;font-weight:600}
+.tabs button[aria-selected="true"]{background:var(--card2);color:var(--ink);box-shadow:0 1px 6px rgba(0,0,0,.18)}
+.tabs button:disabled{opacity:.4;cursor:not-allowed}
+
+.stage{position:relative;margin-top:14px;height:min(56vw,240px);min-height:190px;border-radius:14px;background:radial-gradient(60% 60% at 50% 50%,var(--glow),transparent 70%),var(--bg2);border:1px solid var(--line);overflow:hidden;touch-action:manipulation}
+#wave{position:absolute;inset:0;width:100%;height:100%}
+.micwrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:108px;height:108px}
+.ring{position:absolute;inset:-14px;border-radius:50%;border:2px solid var(--accent);opacity:calc(.2 + var(--lvl,0)*.8);transform:scale(calc(1 + var(--lvl,0)*.45));transition:transform .08s linear}
+.mic{position:absolute;inset:0;border-radius:50%;border:0;cursor:pointer;background:var(--accent);box-shadow:0 10px 28px rgba(0,0,0,.28);display:grid;place-items:center;transition:transform .15s}
+.mic:active{transform:scale(.96)}
+.mic:disabled{cursor:wait;opacity:.6}
+.mic.rec{background:var(--bad)}
+.mic svg{width:38px;height:38px}
+.state{text-align:center;margin-top:12px;min-height:24px;color:var(--ink2)}
+.state b{color:var(--ink);font-weight:600}
+.hint{text-align:center;color:var(--mute);font-size:12.5px;margin:2px 0 0}
+.filebtn{display:flex;justify-content:center;margin-top:10px}
+.linkbtn{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:600;font-size:13px;padding:6px}
+.notice{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--warn-soft);border:1px solid var(--line2);color:var(--ink2);font-size:13px}
+
+.slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.slot{border:1px dashed var(--line2);border-radius:11px;padding:10px 12px;min-height:66px}
+.slot .n{font-size:12px;color:var(--mute);font-weight:600}
+.slot .v{margin-top:4px;font-size:12.5px;color:var(--ink2);font-family:var(--mono)}
+.slot.done{border-style:solid;border-color:var(--ok);background:var(--ok-soft)} .slot.done .n{color:var(--ok)}
+.slot.next{border-style:solid;border-color:var(--accent)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.btn{border:1px solid var(--line2);background:var(--card2);padding:8px 14px;border-radius:10px;cursor:pointer;color:var(--ink2);font-weight:500}
+.btn:hover{color:var(--ink)}
+.btn.danger{color:var(--bad)}
+
+.verdict{display:flex;align-items:center;gap:13px;margin-top:14px;padding:14px 16px;border-radius:13px;border:1px solid var(--line);background:var(--bg2)}
+.verdict .ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:var(--card2);flex:none}
+.verdict .t{font-size:18px;font-weight:700;letter-spacing:.3px}
+.verdict .d{color:var(--mute);font-size:12.5px}
+.verdict.ok{border-color:var(--ok);background:var(--ok-soft)} .verdict.ok .t{color:var(--ok)}
+.verdict.bad{border-color:var(--bad);background:var(--bad-soft)} .verdict.bad .t{color:var(--bad)}
+.metrics{display:grid;gap:12px;margin-top:14px}
+.metric{display:grid;grid-template-columns:130px minmax(0,1fr);grid-template-areas:"n v" "b b";gap:6px 12px;align-items:center}
+@media (min-width:560px){.metric{grid-template-columns:150px minmax(0,1fr) 150px;grid-template-areas:"n b v"}}
+.metric .name{grid-area:n;display:flex;align-items:center;gap:8px;color:var(--ink2);font-size:14px}
+.metric .bar{grid-area:b}
+.metric .val{grid-area:v;font-family:var(--mono);font-size:12px;color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.dot.ok{background:var(--ok)} .dot.bad{background:var(--bad)}
+.bar{position:relative;height:8px;border-radius:99px;background:var(--line)}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.bar i.ok{background:var(--ok)} .bar i.bad{background:var(--bad)}
+.bar u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);border-radius:2px;opacity:.7}
+.strict{display:grid;grid-template-columns:auto 1fr auto;gap:6px 12px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);color:var(--mute);font-size:12.5px}
+.strict input{width:100%;accent-color:var(--accent)}
+.strict .ends{grid-column:1/-1;display:flex;justify-content:space-between}
+
+.kv{display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:13.5px}
+.kv span{color:var(--mute)} .kv b{font-weight:500;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.empty{color:var(--mute);font-size:13.5px}
+.hist{display:grid;gap:6px;max-height:280px;overflow:auto}
+.h{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--bg2);border:1px solid var(--line);font-size:12.5px}
+.h .tm,.h .sc{font-family:var(--mono);color:var(--mute);font-variant-numeric:tabular-nums}
+.h .r{font-weight:600} .h .r.ok{color:var(--ok)} .h .r.bad{color:var(--bad)}
+.steps{display:grid;gap:12px;counter-reset:s;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:26px 1fr;gap:10px}
+.steps li::before{counter-increment:s;content:counter(s);width:24px;height:24px;border-radius:7px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:12px;font-weight:700}
+.steps b{display:block;font-size:13.5px;font-weight:600}
+.steps p{margin:2px 0 0;color:var(--mute);font-size:12.5px}
+.warn{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--warn-soft);color:var(--warn);font-size:12.5px}
+.confirm{margin-top:12px;padding:12px;border-radius:11px;border:1px solid var(--bad);background:var(--bad-soft);font-size:13px}
+footer{margin-top:20px;color:var(--mute);font-size:12px;text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,16px);opacity:0;background:var(--card2);border:1px solid var(--line2);padding:10px 16px;border-radius:11px;transition:.25s;pointer-events:none;max-width:calc(100vw - 32px);z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.err{border-color:var(--bad)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4"/></svg></div>
+      <div><h1>Hlasový kľúč</h1><p>Heslo, ktorým je tvoj hlas</p></div>
+    </div>
+    <div class="userbox">
+      <label for="who" class="sub" style="margin:0">Človek</label>
+      <select id="who"></select>
+      <button class="iconbtn" id="addTop" aria-label="Pridať človeka" title="Pridať človeka"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+      <span id="ubadge" class="badge">Bez hesla</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card">
+      <div class="tabs" role="tablist">
+        <button id="tVerify" role="tab" aria-selected="true">Overenie</button>
+        <button id="tEnroll" role="tab" aria-selected="false">Registrácia</button>
+      </div>
+
+      <div class="stage">
+        <canvas id="wave" aria-hidden="true"></canvas>
+        <div class="micwrap">
+          <div class="ring" id="ring"></div>
+          <button class="mic" id="mic" aria-label="Nahrať heslo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="state" id="state">Ťukni na mikrofón a povedz svoje heslo</div>
+      <p class="hint" id="hint">Nahrávanie sa zastaví samo, keď prestaneš hovoriť.</p>
+      <div class="filebtn"><button class="linkbtn" id="fileBtn">alebo vyber zvukový súbor</button></div>
+      <input type="file" id="file" accept="audio/*,.wav,.m4a,.mp3,.ogg,.webm" hidden>
+      <div class="notice" id="micNotice" hidden></div>
+
+      <div id="enrollPanel" hidden>
+        <div class="slots" id="slots"></div>
+        <div class="row">
+          <button class="btn" id="resetEnroll">Začať odznova</button>
+          <span class="sub" style="margin:0">Veta s 5–6 slovami, vždy rovnako.</span>
+        </div>
+      </div>
+
+      <div id="verifyPanel">
+        <div class="verdict" id="verdict">
+          <div class="ic" id="vIc"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--mute)"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+          <div><div class="t" id="vT">Čaká sa na overenie</div><div class="d" id="vD">Výsledok sa zobrazí po vyslovení hesla.</div></div>
+        </div>
+        <div class="metrics" id="metrics"></div>
+        <div class="strict">
+          <label for="strict">Prísnosť</label>
+          <input type="range" id="strict" min="0.7" max="1.3" step="0.01" value="1">
+          <b id="strictV" style="font-family:var(--mono);font-weight:500">1,00</b>
+          <div class="ends"><span>prísnejšie</span><span>benevolentnejšie</span></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="col">
+      <section class="card" id="peopleCard">
+        <h2>Ľudia</h2>
+        <p class="sub" id="peopleSub">Zaregistrovaní v tomto zariadení</p>
+        <div class="people" id="people"></div>
+        <form class="addform" id="addForm" autocomplete="off">
+          <label for="newName" hidden>Meno nového človeka</label>
+          <input id="newName" placeholder="Meno nového človeka" maxlength="32" spellcheck="false">
+          <button class="btn primary" type="submit">Pridať</button>
+        </form>
+      </section>
+      <section class="card">
+        <h2>Profil hlasu</h2>
+        <p class="sub" id="pSub">—</p>
+        <div id="profile"></div>
+      </section>
+      <section class="card">
+        <h2>História pokusov</h2>
+        <p class="sub">Táto relácia</p>
+        <div class="hist" id="hist"><div class="empty">Zatiaľ žiadne pokusy.</div></div>
+      </section>
+      <section class="card">
+        <h2>Ako to funguje</h2>
+        <p class="sub">Všetko sa počíta v tvojom zariadení, nahrávky sa nikam neodosielajú</p>
+        <ol class="steps">
+          <li><div><b>Detekcia reči</b><p>Ticho a šum sa odstránia, ďalej sa spracúvajú iba rečové úseky v 10 ms rámcoch.</p></div></li>
+          <li><div><b>Obsah vety · MFCC + DTW</b><p>Kepstrálne koeficienty sa porovnajú dynamickým časovým zarovnaním. Prah sa kalibruje nahrávkami prehranými odzadu.</p></div></li>
+          <li><div><b>Odtlačok hlasu</b><p>Kepstrá v pásme 60–4000 Hz sa normalizujú voči hlasom iných ľudí. Priemer a rozptyl tvoria 32-rozmerný vektor, skóre je kosínusová podobnosť.</p></div></li>
+          <li><div><b>Rozhodnutie</b><p>Prístup sa povolí iba vtedy, keď sa zhodujú veta, hlas aj výška hlasu.</p></div></li>
+        </ol>
+      </section>
+    </aside>
+  </div>
+  <footer>Hlasový kľúč · BSB · TUKE</footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/*CORE*/
+</script>
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const N_ENROLL = 3, MAX_SEC = 6, SILENCE_STOP = 1.0, KEY = 'hlasovy-kluc.v3';
+let mode = 'verify', busy = false, enroll = [], history = [], last = null;
+
+/* ---------------- úložisko (iba v tomto zariadení) ---------------- */
+let mem = {};
+function loadAll() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return mem; } }
+function saveAll(o) { mem = o; try { localStorage.setItem(KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
+const PREF = 'hlasovy-kluc.current';
+const people = () => Object.keys(loadAll()).sort((a, b) => a.localeCompare(b, 'sk'));
+let current = (() => { try { const c = localStorage.getItem(PREF); if (c) return c; } catch (e) {} return people()[0] || ''; })();
+let pendingDel = null;
+const user = () => current;
+const getTpl = () => (current && loadAll()[current]) || null;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[c]);
+const cleanName = s => String(s || '').replace(/\s+/g, ' ').trim().slice(0, 32);
+function packTpl(t) {           // zaokrúhlenie, aby sa šablóna zmestila do úložiska
+  const r = v => Math.round(v * 1e4) / 1e4;
+  return {...t, samples: t.samples.map(s => ({...s, seq: s.seq.map(row => row.map(r)), emb: s.emb.map(v => Math.round(v * 1e6) / 1e6)}))};
+}
+
+/* ---------------- UI pomocníci ---------------- */
+function toast(msg, err) { const t = $('#toast'); t.textContent = msg; t.className = 'toast on' + (err ? ' err' : ''); clearTimeout(t._h); t._h = setTimeout(() => t.className = 'toast', 4000); }
+const setState = h => $('#state').innerHTML = h;
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const fx = (x, d) => x.toFixed(d).replace('.', ',');   // slovenská desatinná čiarka
+const fmtDate = ms => new Date(ms).toLocaleString('sk-SK', {day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+
+function setMode(m) {
+  mode = m;
+  $('#tVerify').setAttribute('aria-selected', m === 'verify');
+  $('#tEnroll').setAttribute('aria-selected', m === 'enroll');
+  $('#verifyPanel').hidden = m !== 'verify';
+  $('#enrollPanel').hidden = m !== 'enroll';
+  setState(!current ? 'Najprv pridaj človeka'
+    : m === 'enroll'
+    ? `<b>${esc(current)}</b> · vzorka <b>${Math.min(enroll.length + 1, N_ENROLL)} z ${N_ENROLL}</b> · povedz svoje heslo`
+    : `<b>${esc(current)}</b> · ťukni na mikrofón a povedz heslo`);
+}
+$('#tVerify').onclick = () => !busy && setMode('verify');
+$('#tEnroll').onclick = () => !busy && setMode('enroll');
+
+function selectPerson(name) {
+  current = name || '';
+  try { current ? localStorage.setItem(PREF, current) : localStorage.removeItem(PREF); } catch (e) {}
+  enroll = []; last = null; pendingDel = null;
+  renderSlots(); renderResult(); renderProfile();
+  setMode(getTpl() ? 'verify' : 'enroll');
+}
+function renderPeople() {
+  const all = loadAll(), names = people();
+  const list = current && !all[current] ? [...names, current].sort((a, b) => a.localeCompare(b, 'sk')) : names;
+  // prepínač v hlavičke
+  $('#who').innerHTML = (list.length ? '' : '<option value="">— nikto —</option>') +
+    list.map(n => `<option value="${esc(n)}"${n === current ? ' selected' : ''}>${esc(n)}${all[n] ? '' : ' (nový)'}</option>`).join('') +
+    '<option value="__add">+ Pridať človeka…</option>';
+  // zoznam v karte
+  $('#peopleSub').textContent = names.length
+    ? `${names.length === 1 ? '1 človek' : names.length < 5 ? names.length + ' ľudia' : names.length + ' ľudí'} s heslom v tomto zariadení`
+    : 'Zatiaľ tu nie je nikto. Pridaj prvého človeka.';
+  $('#people').innerHTML = list.map(n => {
+    const t = all[n], on = n === current ? ' on' : '', pend = t ? '' : ' pending';
+    if (pendingDel === n) return `<div class="person deleting"><div class="confirm">Odstrániť <b style="display:inline">${esc(n)}</b> aj s heslom?
+        <div class="row"><button class="btn danger" data-yes="${esc(n)}">Odstrániť</button><button class="btn" data-no="1">Zrušiť</button></div></div></div>`;
+    return `<div class="person${on}${pend}">
+      <button class="pick" data-pick="${esc(n)}" aria-pressed="${n === current}"><span class="av">${esc(n.charAt(0).toUpperCase())}</span>
+        <span style="min-width:0"><b>${esc(n)}</b><small>${t ? 'registrácia ' + fmtDate(t.created) : 'čaká na registráciu hesla'}</small></span></button>
+      <button class="iconbtn del" data-del="${esc(n)}" aria-label="Odstrániť ${esc(n)}" title="Odstrániť"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></div>`;
+  }).join('');
+}
+$('#people').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || busy) return;
+  if (b.dataset.pick !== undefined) selectPerson(b.dataset.pick);
+  else if (b.dataset.del !== undefined) { pendingDel = b.dataset.del; renderPeople(); }
+  else if (b.dataset.no) { pendingDel = null; renderPeople(); }
+  else if (b.dataset.yes !== undefined) {
+    const n = b.dataset.yes, all = loadAll(); delete all[n]; saveAll(all); pendingDel = null;
+    history = history.filter(h => h.who !== n); renderHistory();
+    toast(`Odstránené: ${n}.`);
+    if (n === current) selectPerson(people()[0] || ''); else renderPeople();
+  }
+});
+function addPerson(raw) {
+  const n = cleanName(raw);
+  if (!n) { toast('Zadaj meno nového človeka.', true); $('#newName').focus(); return false; }
+  if (people().some(x => x.toLocaleLowerCase('sk') === n.toLocaleLowerCase('sk'))) { toast(`Človek s menom ${n} už existuje.`, true); return false; }
+  selectPerson(n); setMode('enroll');
+  toast(`Pridané: ${n}. Teraz 3× nahraj heslo.`);
+  return true;
+}
+$('#addForm').addEventListener('submit', e => { e.preventDefault(); if (!busy && addPerson($('#newName').value)) $('#newName').value = ''; });
+function focusAdd() { $('#peopleCard').scrollIntoView({block: 'center', behavior: 'smooth'}); setTimeout(() => $('#newName').focus(), 350); }
+$('#addTop').onclick = () => !busy && focusAdd();
+$('#who').addEventListener('change', e => {
+  if (busy) { e.target.value = current; return; }
+  if (e.target.value === '__add') { e.target.value = current; focusAdd(); return; }
+  selectPerson(e.target.value);
+});
+
+function renderProfile() {
+  renderPeople();
+  const t = getTpl(), b = $('#ubadge');
+  b.textContent = t ? 'Heslo nastavené' : current ? 'Bez hesla' : 'Nikto'; b.className = 'badge' + (t ? ' ok' : '');
+  $('#tVerify').disabled = !t;
+  $('#tEnroll').disabled = !current;
+  $('#mic').disabled = !current || busy;
+  if (!current) {
+    $('#pSub').textContent = '—';
+    $('#profile').innerHTML = '<div class="empty">Najprv pridaj človeka v karte Ľudia.</div>';
+    return;
+  }
+  if (!t) {
+    $('#pSub').textContent = current;
+    $('#profile').innerHTML = `<div class="empty">${esc(current)} zatiaľ nemá heslo. Na karte Registrácia ho 3× vyslov.</div>`;
+    return;
+  }
+  const f0 = t.samples.map(s => s.f0).sort((a, b) => a - b)[1], len = t.samples.map(s => s.speech_sec).sort((a, b) => a - b)[1];
+  $('#pSub').textContent = `${t.user} · zaregistrované ${fmtDate(t.created)}`;
+  $('#profile').innerHTML = `<div class="kv">
+    <span>Výška hlasu (F0)</span><b>${f0.toFixed(0)} Hz</b>
+    <span>Dĺžka hesla</span><b>${fx(len, 2)} s reči</b>
+    <span>Prah zhody vety</span><b>≤ ${fx(t.thresholds.content, 3)}</b>
+    <span>Prah zhody hlasu</span><b>≥ ${fx(t.thresholds.speaker * 100, 1)} %</b>
+    <span>Tolerancia výšky</span><b>± ${fx(t.thresholds.f0, 0)} poltóny</b></div>` +
+    (t.warnings || []).map(w => `<div class="warn">${w}</div>`).join('');
+}
+
+function renderSlots() {
+  $('#slots').innerHTML = Array.from({length: N_ENROLL}, (_, i) => {
+    const s = enroll[i], cls = s ? 'slot done' : (i === enroll.length ? 'slot next' : 'slot');
+    const v = s ? `${fx(s.f.speech_sec, 1)} s · ${s.f.f0.toFixed(0)} Hz` : (i === enroll.length ? 'na rade' : '—');
+    return `<div class="${cls}"><div class="n">${s ? '✓ ' : ''}Vzorka ${i + 1}</div><div class="v">${v}</div></div>`;
+  }).join('');
+}
+$('#resetEnroll').onclick = () => { enroll = []; renderSlots(); setMode('enroll'); };
+
+function metricRow(name, ok, fill, mark, val) {
+  return `<div class="metric"><div class="name"><span class="dot ${ok ? 'ok' : 'bad'}"></span>${name}</div>
+    <div class="bar"><i class="${ok ? 'ok' : 'bad'}" style="width:${(clamp(fill) * 100).toFixed(1)}%"></i><u style="left:calc(${(clamp(mark) * 100).toFixed(1)}% - 1px)"></u></div>
+    <div class="val">${val}</div></div>`;
+}
+const ICON_OK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="color:var(--ok)"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ICON_BAD = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="color:var(--bad)"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function renderResult() {
+  const v = $('#verdict');
+  if (!last) { v.className = 'verdict'; $('#vT').textContent = 'Čaká sa na overenie'; $('#vD').textContent = 'Výsledok sa zobrazí po vyslovení hesla.'; $('#metrics').innerHTML = ''; return; }
+  const tpl = getTpl(); if (!tpl) return;
+  const r = VC.verify(tpl, last, +$('#strict').value), x = r.values, t = r.thresholds, c = r.checks;
+  v.className = 'verdict ' + (r.ok ? 'ok' : 'bad');
+  $('#vIc').innerHTML = r.ok ? ICON_OK : ICON_BAD;
+  $('#vT').textContent = r.ok ? 'PRÍSTUP POVOLENÝ' : 'PRÍSTUP ZAMIETNUTÝ';
+  const why = {content: 'iná veta', speaker: 'iný hlas', f0: 'iná výška hlasu', duration: 'iná dĺžka vety'};
+  $('#vD').textContent = r.ok ? `Veta aj hlas zodpovedajú profilu ${tpl.user}.` : 'Dôvod: ' + Object.keys(c).filter(k => !c[k]).map(k => why[k]).join(', ') + '.';
+  const sc = s => (s - 0.6) / 0.4;
+  $('#metrics').innerHTML =
+    metricRow('Zhoda vety', c.content, 1 - x.content / (2 * t.content), .5, `${fx(x.content, 2)} / ${fx(t.content, 2)}`) +
+    metricRow('Zhoda hlasu', c.speaker, sc(x.speaker), sc(t.speaker), `${fx(x.speaker * 100, 1)} / ${fx(t.speaker * 100, 1)} %`) +
+    metricRow('Výška hlasu', c.f0, 1 - x.f0_diff / (2 * t.f0), .5, `${x.f0.toFixed(0)} Hz · ref. ${x.f0_ref.toFixed(0)}`) +
+    metricRow('Dĺžka vety', c.duration, 1 - Math.abs(Math.log(x.dur_ratio)) / (2 * Math.log(1.6)), .5, `${(x.dur_ratio * 100).toFixed(0)} %`);
+  return r;
+}
+function addHistory(r) { history.unshift({t: new Date().toLocaleTimeString('sk-SK'), who: current, r}); renderHistory(); }
+function renderHistory() {
+  $('#hist').innerHTML = history.length ? history.slice(0, 50).map(h => `<div class="h"><span class="tm">${h.t}</span>
+    <span class="r ${h.r.ok ? 'ok' : 'bad'}">${h.r.ok ? 'Povolené' : 'Zamietnuté'} <span style="color:var(--mute);font-weight:500">· ${esc(h.who)}</span></span>
+    <span class="sc">hlas ${fx(h.r.values.speaker * 100, 1)} %</span></div>`).join('') : '<div class="empty">Zatiaľ žiadne pokusy.</div>';
+}
+$('#strict').oninput = e => { $('#strictV').textContent = fx(+e.target.value, 2); renderResult(); };
+
+/* ---------------- spracovanie ---------------- */
+async function to16k(buf, sr) {
+  if (sr === VC.SR) return Float64Array.from(buf);
+  const len = Math.ceil(buf.length * VC.SR / sr);
+  const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const off = new OAC(1, len, VC.SR), ab = off.createBuffer(1, buf.length, sr);
+  ab.getChannelData(0).set(buf);
+  const src = off.createBufferSource(); src.buffer = ab; src.connect(off.destination); src.start();
+  const out = await off.startRendering();
+  return Float64Array.from(out.getChannelData(0));
+}
+const nextFrame = () => new Promise(r => setTimeout(r, 30));
+async function processAudio(y) {
+  busy = true; $('#mic').disabled = true; setState('<b>Analyzujem…</b>'); await nextFrame();
+  try {
+    if (mode === 'enroll') {
+      const f = VC.extract(y);
+      enroll.push({y, f}); renderSlots();
+      if (enroll.length >= N_ENROLL) {
+        setState('<b>Vytváram šablónu hlasu…</b>'); await nextFrame();
+        const tpl = packTpl(VC.buildTemplate(user(), enroll.map(e => e.y)));
+        const all = loadAll(); all[user()] = tpl;
+        if (!saveAll(all)) toast('Heslo platí iba do zatvorenia stránky – prehliadač nedovolil uložiť dáta.', true);
+        else toast('Heslo zaregistrované. Teraz ho over.');
+        enroll = []; renderSlots(); last = null; renderResult(); renderProfile(); setMode('verify');
+      } else setMode('enroll');
+    } else {
+      if (!getTpl()) throw new Error('Najprv zaregistruj heslo.');
+      last = VC.extract(y);
+      const r = renderResult(); addHistory(r);
+      try { $('#verdict').scrollIntoView({block: 'nearest', behavior: reduce ? 'auto' : 'smooth'}); } catch (_) {}
+      try { navigator.vibrate && navigator.vibrate(r.ok ? 40 : [60, 60, 60]); } catch (_) {}
+      setState(r.ok ? '<b>Overené.</b> Môžeš skúsiť znova.' : '<b>Neoverené.</b> Skús to znova.');
+    }
+  } catch (e) {
+    toast(e.message, true);
+    setState(mode === 'enroll' ? 'Vzorka nebola prijatá – skús to znova' : 'Nahrávka nebola použiteľná – skús to znova');
+  } finally { busy = false; $('#mic').disabled = !current; }
+}
+
+/* ---------------- mikrofón ---------------- */
+let ctx, stream, analyser, proc, chunks = [], recording = false, t0 = 0, noise = 0, speechSeen = false, lastSpeech = 0;
+async function startRec() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { micUnavailable('Tento prehliadač alebo stránka nepovoľuje mikrofón.'); return; }
+  try {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    await ctx.resume();
+    stream = await navigator.mediaDevices.getUserMedia({audio: {channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false}});
+  } catch (e) { try { ctx && ctx.close(); } catch (_) {} micUnavailable(e && e.name === 'NotAllowedError' ? 'Prístup k mikrofónu bol zamietnutý.' : 'Mikrofón nie je dostupný.'); return; }
+  const src = ctx.createMediaStreamSource(stream);
+  analyser = ctx.createAnalyser(); analyser.fftSize = 2048;
+  proc = ctx.createScriptProcessor(2048, 1, 1);
+  chunks = []; noise = 0; speechSeen = false; t0 = performance.now(); recording = true;
+  proc.onaudioprocess = e => {
+    if (!recording) return;
+    const x = e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(x));
+    let s = 0; for (let i = 0; i < x.length; i++) s += x[i] * x[i];
+    const rms = Math.sqrt(s / x.length), el = (performance.now() - t0) / 1000;
+    $('#ring').style.setProperty('--lvl', clamp((20 * Math.log10(rms + 1e-9) + 55) / 45).toFixed(3));
+    if (el < 0.3) { noise = Math.max(noise, rms); return; }
+    if (rms > Math.max(noise * 4, 0.01)) { speechSeen = true; lastSpeech = el; }
+    if (el >= MAX_SEC || (speechSeen && el - lastSpeech > SILENCE_STOP)) stopRec();
+  };
+  src.connect(analyser); src.connect(proc); proc.connect(ctx.destination);
+  $('#mic').classList.add('rec'); $('#mic').setAttribute('aria-label', 'Zastaviť nahrávanie');
+  setState('<b>Počúvam…</b> hovor teraz'); tick();
+}
+function tick() { if (!recording) return; $('#hint').textContent = `${fx((performance.now() - t0) / 1000, 1)} s · zastaví sa samo po odmlke`; requestAnimationFrame(tick); }
+async function stopRec() {
+  if (!recording) return;
+  recording = false;
+  const sr = ctx.sampleRate;
+  try { proc.disconnect(); } catch (e) {}
+  stream.getTracks().forEach(t => t.stop());
+  $('#mic').classList.remove('rec'); $('#mic').setAttribute('aria-label', 'Nahrať heslo'); $('#ring').style.setProperty('--lvl', 0);
+  const len = chunks.reduce((a, c) => a + c.length, 0), y = new Float32Array(len);
+  let o = 0; for (const c of chunks) { y.set(c, o); o += c.length; }
+  try { ctx.close(); } catch (e) {}
+  $('#hint').textContent = 'Nahrávanie sa zastaví samo, keď prestaneš hovoriť.';
+  await processAudio(await to16k(y, sr));
+}
+function micUnavailable(msg) {
+  const n = $('#micNotice');
+  n.hidden = false;
+  n.innerHTML = `${msg} Heslo môžeš nahrať v Diktafóne alebo inej aplikácii a potom ho vybrať cez <b>„alebo vyber zvukový súbor“</b>. Pre priame nahrávanie otvor aplikáciu na vlastnej HTTPS adrese.`;
+  toast(msg, true);
+}
+$('#mic').onclick = () => { if (busy) return; if (!current) { focusAdd(); return; } recording ? stopRec() : startRec(); };
+
+/* ---------------- súbor ---------------- */
+$('#fileBtn').onclick = () => { if (busy) return; if (!current) { focusAdd(); return; } $('#file').click(); };
+$('#file').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext, ac = new AC();
+    const ab = await f.arrayBuffer();
+    const buf = await new Promise((res, rej) => { const p = ac.decodeAudioData(ab, res, rej); if (p && p.then) p.then(res, rej); });
+    const ch = buf.getChannelData(0); const sr = buf.sampleRate; try { ac.close(); } catch (_) {}
+    await processAudio(await to16k(ch, sr));
+  } catch (err) { toast('Súbor sa nepodarilo prečítať – použi WAV, M4A alebo MP3.', true); }
+};
+
+/* ---------------- vizualizácia ---------------- */
+const cv = $('#wave'), g = cv.getContext('2d'), buf = new Float32Array(2048);
+const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+let ph = 0;
+function draw() {
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const live = recording && analyser; if (live) analyser.getFloatTimeDomainData(buf);
+  const css = getComputedStyle(document.documentElement);
+  const col = live ? css.getPropertyValue('--bad').trim() : css.getPropertyValue('--accent').trim();
+  for (let layer = 0; layer < 2; layer++) {
+    g.beginPath();
+    for (let i = 0; i <= 140; i++) {
+      const x = i / 140 * w, k = Math.floor(i / 140 * (buf.length - 1)), env = Math.sin(Math.PI * i / 140);
+      const a = live ? buf[k] * h * 1.6 : Math.sin(i / 8 + ph + layer) * 3;
+      const yy = h / 2 + a * env * (layer ? .55 : 1); i ? g.lineTo(x, yy) : g.moveTo(x, yy);
+    }
+    g.strokeStyle = col; g.globalAlpha = layer ? .18 : .6; g.lineWidth = layer ? 6 : 1.6; g.stroke();
+  }
+  g.globalAlpha = 1; if (!reduce) ph += .03; requestAnimationFrame(draw);
+}
+draw();
+
+/* ---------------- štart ---------------- */
+renderSlots(); renderProfile(); renderResult(); setMode(getTpl() ? 'verify' : 'enroll');
+})();
+</script>
