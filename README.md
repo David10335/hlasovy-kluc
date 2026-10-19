@@ -7,6 +7,8 @@ Biometrické heslo pomocou hlasu – projekt na predmet BIKS (TUKE).
 Používateľ 3× vysloví krátku vetu (heslo). Aplikácia z nahrávok vypočíta vlastnosti hlasu
 a pri overení rozhodne, či ide o **tú istú vetu** od **toho istého človeka**.
 
+V jednom zariadení môže mať heslo viac ľudí – v karte **Ľudia** sa pridávajú, prepínajú a odstraňujú.
+
 Všetko sa počíta v prehliadači (iPhone, Android, počítač). Nahrávky sa nikam neodosielajú,
 šablóna hlasu sa ukladá iba v danom zariadení.
 
