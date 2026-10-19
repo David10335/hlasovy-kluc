@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hlasový kľúč</title>
+<style>
+:root{
+  --bg:#0b0f17; --bg2:#0f1520; --card:#131b29; --card2:#18212f; --line:#232d3d; --line2:#2c3849;
+  --ink:#e8edf5; --ink2:#a9b4c4; --mute:#6f7c90;
+  --accent:#5b8cff; --accent2:#7aa2ff; --ok:#2fbf71; --ok-bg:rgba(47,191,113,.12);
+  --bad:#ef5b5b; --bad-bg:rgba(239,91,91,.12); --warn:#f2b84b;
+  --r:14px; --font:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  --mono:"Cascadia Mono",Consolas,ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background:radial-gradient(1200px 600px at 20% -10%,#15213a 0%,transparent 60%),var(--bg)}
+button,input{font:inherit;color:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:22px 28px 40px}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+.brand{display:flex;align-items:center;gap:12px;flex:1}
+.mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#3d6df2,#7aa2ff);display:grid;place-items:center;box-shadow:0 6px 20px rgba(91,140,255,.35)}
+.brand h1{margin:0;font-size:18px;font-weight:650;letter-spacing:.2px}
+.brand p{margin:0;color:var(--mute);font-size:12.5px}
+.userbox{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 6px 6px 12px}
+.userbox label{color:var(--mute);font-size:12px}
+.userbox input{background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:7px 10px;width:170px;outline:none}
+.userbox input:focus{border-color:var(--accent)}
+.badge{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);color:var(--ink2);white-space:nowrap}
+.badge.ok{color:var(--ok);border-color:rgba(47,191,113,.35);background:var(--ok-bg)}
+.badge.bad{color:var(--warn);border-color:rgba(242,184,75,.35);background:rgba(242,184,75,.08)}
+
+/* ---------- layout ---------- */
+.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:980px){.grid{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--card),#111826);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.card h2{margin:0 0 4px;font-size:13px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--ink2)}
+.card .sub{color:var(--mute);font-size:12.5px;margin:0 0 14px}
+.col{display:flex;flex-direction:column;gap:18px}
+
+/* ---------- tabs ---------- */
+.tabs{display:inline-flex;background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:4px;gap:4px}
+.tabs button{border:0;background:transparent;padding:8px 18px;border-radius:8px;color:var(--ink2);cursor:pointer;font-weight:550}
+.tabs button.on{background:var(--card2);color:var(--ink);box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 2px 8px rgba(0,0,0,.25)}
+.tabs button:disabled{opacity:.45;cursor:not-allowed}
+.stagehead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+/* ---------- mic stage ---------- */
+.stage{position:relative;margin:18px 0 6px;height:250px;border-radius:12px;background:radial-gradient(400px 200px at 50% 50%,rgba(91,140,255,.08),transparent 70%),var(--bg2);border:1px solid var(--line);overflow:hidden}
+#wave{position:absolute;inset:0;width:100%;height:100%}
+.micwrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:120px;height:120px}
+.ring{position:absolute;inset:-14px;border-radius:50%;border:2px solid rgba(91,140,255,.35);transform:scale(calc(1 + var(--lvl,0)*.45));opacity:calc(.25 + var(--lvl,0));transition:transform .08s linear}
+.mic{position:absolute;inset:0;border-radius:50%;border:0;cursor:pointer;background:linear-gradient(145deg,#4e7ef5,#3561dc);box-shadow:0 10px 30px rgba(61,109,242,.45),inset 0 1px 0 rgba(255,255,255,.25);display:grid;place-items:center;transition:transform .15s,background .2s}
+.mic:hover{transform:scale(1.04)}
+.mic:disabled{cursor:wait;filter:saturate(.4) brightness(.8)}
+.mic.rec{background:linear-gradient(145deg,#f06b6b,#d84545);box-shadow:0 10px 30px rgba(239,91,91,.45)}
+.mic svg{width:40px;height:40px}
+.state{text-align:center;color:var(--ink2);min-height:22px;margin-top:10px}
+.state b{color:var(--ink);font-weight:600}
+.hint{text-align:center;color:var(--mute);font-size:12.5px;margin:2px 0 0}
+
+/* ---------- enrollment ---------- */
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.slot{border:1px dashed var(--line2);border-radius:11px;padding:12px 14px;min-height:76px;background:rgba(255,255,255,.01)}
+.slot .n{font-size:12px;color:var(--mute)}
+.slot .v{margin-top:6px;font-size:13px;color:var(--ink2)}
+.slot.done{border-style:solid;border-color:rgba(47,191,113,.35);background:var(--ok-bg)}
+.slot.done .n{color:var(--ok)}
+.slot.next{border-color:var(--accent);border-style:solid}
+.row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+.btn{border:1px solid var(--line2);background:var(--card2);padding:8px 14px;border-radius:9px;cursor:pointer;color:var(--ink2)}
+.btn:hover{border-color:#3a4a62;color:var(--ink)}
+.btn.danger:hover{border-color:rgba(239,91,91,.5);color:var(--bad)}
+
+/* ---------- verdict ---------- */
+.verdict{display:flex;align-items:center;gap:14px;margin-top:16px;padding:16px 18px;border-radius:12px;border:1px solid var(--line);background:var(--bg2)}
+.verdict .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--card2);flex:none}
+.verdict .t{font-size:19px;font-weight:650;letter-spacing:.3px}
+.verdict .d{color:var(--mute);font-size:12.5px}
+.verdict.ok{border-color:rgba(47,191,113,.4);background:var(--ok-bg)} .verdict.ok .ic{background:rgba(47,191,113,.18)} .verdict.ok .t{color:var(--ok)}
+.verdict.bad{border-color:rgba(239,91,91,.4);background:var(--bad-bg)} .verdict.bad .ic{background:rgba(239,91,91,.18)} .verdict.bad .t{color:var(--bad)}
+.metrics{display:grid;gap:12px;margin-top:16px}
+.metric{display:grid;grid-template-columns:170px 1fr 150px;gap:14px;align-items:center}
+@media (max-width:640px){.metric{grid-template-columns:1fr}}
+.metric .name{display:flex;align-items:center;gap:8px;color:var(--ink2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--line2);flex:none}
+.dot.ok{background:var(--ok)} .dot.bad{background:var(--bad)}
+.bar{position:relative;height:8px;border-radius:99px;background:var(--line)}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--accent);transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.bar i.ok{background:var(--ok)} .bar i.bad{background:var(--bad)}
+.bar u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.75;border-radius:2px}
+.metric .val{font-family:var(--mono);font-size:12px;color:var(--ink2);text-align:right}
+.strict{display:flex;align-items:center;gap:12px;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);color:var(--mute);font-size:12.5px}
+.strict input{flex:1;accent-color:var(--accent)}
+
+/* ---------- side ---------- */
+.kv{display:grid;grid-template-columns:1fr auto;gap:8px 12px;font-size:13px}
+.kv span{color:var(--mute)} .kv b{font-weight:550;font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+.empty{color:var(--mute);font-size:13px;padding:6px 0}
+.hist{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow:auto}
+.h{display:grid;grid-template-columns:62px 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;background:var(--bg2);border:1px solid var(--line);font-size:12.5px}
+.h .tm{font-family:var(--mono);color:var(--mute)}
+.h .r.ok{color:var(--ok);font-weight:600} .h .r.bad{color:var(--bad);font-weight:600}
+.h .sc{font-family:var(--mono);color:var(--ink2);font-size:11.5px}
+.steps{display:grid;gap:12px;counter-reset:s}
+.step{display:grid;grid-template-columns:28px 1fr;gap:10px}
+.step::before{counter-increment:s;content:counter(s);width:26px;height:26px;border-radius:8px;background:var(--card2);border:1px solid var(--line2);display:grid;place-items:center;font-size:12px;color:var(--accent2);font-weight:650}
+.step b{display:block;font-weight:600;font-size:13px}
+.step p{margin:2px 0 0;color:var(--mute);font-size:12.5px}
+.warn{margin-top:12px;padding:10px 12px;border-radius:9px;background:rgba(242,184,75,.08);border:1px solid rgba(242,184,75,.3);color:#f5cf86;font-size:12.5px}
+footer{margin-top:22px;color:var(--mute);font-size:12px;text-align:center}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:#1c2536;border:1px solid var(--line2);padding:10px 16px;border-radius:10px;color:var(--ink);transition:.25s;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.toast.err{border-color:rgba(239,91,91,.5)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4"/></svg></div>
+      <div><h1>Hlasový kľúč</h1><p>Biometrické overenie hlasom · tá istá veta + ten istý hlas</p></div>
+    </div>
+    <div class="userbox">
+      <label for="user">Používateľ</label>
+      <input id="user" list="users" autocomplete="off" spellcheck="false" value="david">
+      <datalist id="users"></datalist>
+      <span id="ubadge" class="badge">…</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- ======================= ľavý stĺpec ======================= -->
+    <section class="card">
+      <div class="stagehead">
+        <div class="tabs" role="tablist">
+          <button id="tVerify" class="on">Overenie</button>
+          <button id="tEnroll">Registrácia</button>
+        </div>
+        <div id="modeHint" class="sub" style="margin:0"></div>
+      </div>
+
+      <div class="stage">
+        <canvas id="wave"></canvas>
+        <div class="micwrap">
+          <div class="ring" id="ring"></div>
+          <button class="mic" id="mic" aria-label="Nahrávať">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="state" id="state">Klikni na mikrofón a povedz svoje heslo</div>
+      <p class="hint" id="hint">Nahrávanie sa zastaví samo, keď prestaneš hovoriť.</p>
+
+      <!-- registrácia -->
+      <div id="enrollPanel" class="hidden">
+        <div class="slots" id="slots"></div>
+        <div class="row">
+          <button class="btn" id="resetEnroll">Začať odznova</button>
+          <span class="sub" style="margin:0">Zvoľ vetu s 5–6 slovami a povedz ju vždy rovnako.</span>
+        </div>
+      </div>
+
+      <!-- overenie -->
+      <div id="verifyPanel">
+        <div class="verdict" id="verdict">
+          <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6f7c90" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+          <div><div class="t" id="vT">Čaká sa na overenie</div><div class="d" id="vD">Výsledok sa zobrazí po vyslovení hesla.</div></div>
+        </div>
+        <div class="metrics" id="metrics"></div>
+        <div class="strict">
+          <span>Prísnosť</span><span>prísnejšie</span>
+          <input type="range" id="strict" min="0.7" max="1.3" step="0.01" value="1">
+          <span>benevolentnejšie</span>
+          <span id="strictV" style="font-family:var(--mono);color:var(--ink2);width:38px;text-align:right">1.00</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= pravý stĺpec ======================= -->
+    <aside class="col">
+      <section class="card">
+        <h2>Profil hlasu</h2>
+        <p class="sub" id="pSub">Zaregistrovaná šablóna</p>
+        <div id="profile"></div>
+        <div class="row"><button class="btn danger hidden" id="del">Zmazať šablónu</button></div>
+      </section>
+
+      <section class="card">
+        <h2>História pokusov</h2>
+        <p class="sub">Táto relácia</p>
+        <div class="hist" id="hist"><div class="empty">Zatiaľ žiadne pokusy.</div></div>
+      </section>
+
+      <section class="card">
+        <h2>Ako to funguje</h2>
+        <p class="sub">Spracovanie prebieha lokálne na tomto počítači</p>
+        <div class="steps">
+          <div class="step"><div><b>Detekcia reči</b><p>Odstráni sa ticho a šum, ďalej sa spracúvajú iba rečové úseky (10 ms rámce).</p></div></div>
+          <div class="step"><div><b>Obsah vety · MFCC + DTW</b><p>Kepstrálne koeficienty sa porovnajú dynamickým časovým zarovnaním. Prah sa kalibruje pomocou nahrávok prehraných odzadu.</p></div></div>
+          <div class="step"><div><b>Odtlačok hlasu · statistics pooling</b><p>Kepstrá v pásme 60–4000 Hz sa normalizujú voči hlasom iných ľudí, priemer a rozptyl tvoria vektor hlasu. Skóre je kosínusová podobnosť.</p></div></div>
+          <div class="step"><div><b>Rozhodnutie</b><p>Prístup sa povolí iba vtedy, keď sedí veta, hlas aj výška hlasu.</p></div></div>
+        </div>
+      </section>
+    </aside>
+  </div>
+  <footer>Hlasový kľúč · BIKS · TUKE</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const N_ENROLL = 3, MAX_SEC = 6, SILENCE_STOP = 1.0;
+let mode = 'verify', busy = false, enrollSamples = [], history = [], lastResult = null, profile = null;
+
+/* ------------------------------------------------------------ API */
+async function api(path, body) {
+  const r = await fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body || {})});
+  const j = await r.json().catch(() => ({error: 'Neplatná odpoveď servera'}));
+  if (!r.ok || j.error) throw new Error(j.error || r.statusText);
+  return j;
+}
+function toast(msg, err) {
+  const t = $('#toast'); t.textContent = msg; t.className = 'toast on' + (err ? ' err' : '');
+  clearTimeout(t._h); t._h = setTimeout(() => t.className = 'toast', 3800);
+}
+const user = () => $('#user').value.trim() || 'pouzivatel';
+
+/* ------------------------------------------------------------ používateľ / profil */
+async function loadUsers() {
+  try {
+    const {users} = await api('/api/users');
+    $('#users').innerHTML = users.map(u => `<option value="${u.name}">`).join('');
+  } catch (e) {}
+}
+async function loadProfile() {
+  try { profile = await api('/api/user', {user: user()}); } catch (e) { profile = {status: 'none'}; }
+  const b = $('#ubadge');
+  if (profile.status === 'ok') { b.textContent = 'Zaregistrovaný'; b.className = 'badge ok'; }
+  else if (profile.status === 'outdated') { b.textContent = 'Treba novú registráciu'; b.className = 'badge bad'; }
+  else { b.textContent = 'Bez hesla'; b.className = 'badge'; }
+  renderProfile();
+  if (profile.status !== 'ok' && mode === 'verify') setMode('enroll');
+  $('#tVerify').disabled = profile.status !== 'ok';
+}
+function renderProfile() {
+  const p = profile || {};
+  $('#del').classList.toggle('hidden', p.status === 'none');
+  if (p.status !== 'ok') {
+    $('#pSub').textContent = user();
+    $('#profile').innerHTML = `<div class="empty">${p.status === 'outdated'
+      ? 'Šablóna pochádza zo staršej verzie programu. Zaregistruj heslo znova.'
+      : 'Tento používateľ zatiaľ nemá heslo. Prejdi na kartu Registrácia.'}</div>`;
+    return;
+  }
+  const t = p.thresholds;
+  $('#pSub').textContent = `${p.name} · zaregistrované ${p.created}`;
+  $('#profile').innerHTML = `<div class="kv">
+      <span>Výška hlasu (F0)</span><b>${p.f0.toFixed(0)} Hz</b>
+      <span>Dĺžka hesla</span><b>${p.speech_sec.toFixed(2)} s reči</b>
+      <span>Prah zhody vety (DTW)</span><b>≤ ${t.content.toFixed(3)}</b>
+      <span>Prah zhody hlasu (kosínus)</span><b>≥ ${t.speaker.toFixed(3)}</b>
+      <span>Tolerancia výšky hlasu</span><b>± ${t.f0.toFixed(1)} poltónu</b>
+    </div>` + (p.warnings || []).map(w => `<div class="warn">${w}</div>`).join('');
+}
+$('#user').addEventListener('change', () => { enrollSamples = []; renderSlots(); lastResult = null; renderResult(); loadProfile(); });
+$('#del').onclick = async () => {
+  if (!confirm(`Naozaj zmazať šablónu používateľa „${user()}“?`)) return;
+  await api('/api/delete', {user: user()}); toast('Šablóna zmazaná'); loadUsers(); loadProfile();
+};
+
+/* ------------------------------------------------------------ režimy */
+function setMode(m) {
+  mode = m;
+  $('#tVerify').classList.toggle('on', m === 'verify');
+  $('#tEnroll').classList.toggle('on', m === 'enroll');
+  $('#verifyPanel').classList.toggle('hidden', m !== 'verify');
+  $('#enrollPanel').classList.toggle('hidden', m !== 'enroll');
+  $('#modeHint').textContent = m === 'enroll' ? `Nahraj heslo ${N_ENROLL}×` : 'Povedz heslo na overenie';
+  setState(m === 'enroll'
+    ? `Vzorka <b>${Math.min(enrollSamples.length + 1, N_ENROLL)} z ${N_ENROLL}</b> · klikni na mikrofón a povedz heslo`
+    : 'Klikni na mikrofón a povedz svoje heslo');
+}
+$('#tVerify').onclick = () => !busy && setMode('verify');
+$('#tEnroll').onclick = () => !busy && setMode('enroll');
+const setState = h => $('#state').innerHTML = h;
+
+/* ------------------------------------------------------------ registrácia */
+function renderSlots() {
+  $('#slots').innerHTML = Array.from({length: N_ENROLL}, (_, i) => {
+    const s = enrollSamples[i];
+    const cls = s ? 'slot done' : (i === enrollSamples.length ? 'slot next' : 'slot');
+    const v = s ? `${s.summary.speech_sec.toFixed(1)} s · ${s.summary.f0.toFixed(0)} Hz` : (i === enrollSamples.length ? 'na rade' : '—');
+    return `<div class="${cls}"><div class="n">${s ? '✓ ' : ''}Vzorka ${i + 1}</div><div class="v">${v}</div></div>`;
+  }).join('');
+}
+$('#resetEnroll').onclick = () => { enrollSamples = []; renderSlots(); setMode('enroll'); };
+
+/* ------------------------------------------------------------ výsledok */
+const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+function metricRow(name, ok, fill, mark, val) {
+  return `<div class="metric"><div class="name"><span class="dot ${ok ? 'ok' : 'bad'}"></span>${name}</div>
+    <div class="bar"><i class="${ok ? 'ok' : 'bad'}" style="width:${(clamp(fill) * 100).toFixed(1)}%"></i><u style="left:calc(${(clamp(mark) * 100).toFixed(1)}% - 1px)"></u></div>
+    <div class="val">${val}</div></div>`;
+}
+function renderResult() {
+  const v = $('#verdict');
+  if (!lastResult) {
+    v.className = 'verdict'; $('#vT').textContent = 'Čaká sa na overenie';
+    $('#vD').textContent = 'Výsledok sa zobrazí po vyslovení hesla.'; $('#metrics').innerHTML = ''; return;
+  }
+  const r = lastResult, x = r.values, t = r.thresholds, c = r.checks;
+  v.className = 'verdict ' + (r.ok ? 'ok' : 'bad');
+  v.querySelector('.ic').innerHTML = r.ok
+    ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2fbf71" stroke-width="2.4" stroke-linecap="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+    : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ef5b5b" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  $('#vT').textContent = r.ok ? 'PRÍSTUP POVOLENÝ' : 'PRÍSTUP ZAMIETNUTÝ';
+  const why = {content: 'iná veta', speaker: 'iný hlas', f0: 'iná výška hlasu', duration: 'iná dĺžka vety'};
+  const bad = Object.keys(c).filter(k => !c[k]).map(k => why[k]);
+  $('#vD').textContent = r.ok ? `Heslo aj hlas zodpovedajú používateľovi ${user()}.` : 'Dôvod: ' + bad.join(', ') + '.';
+  // pruhy: čiara = prah
+  const lo = 0.6, sc = (s) => (s - lo) / (1 - lo);
+  $('#metrics').innerHTML =
+    metricRow('Zhoda vety', c.content, 1 - x.content / (2 * t.content), 0.5,
+      `${x.content.toFixed(2)} / ${t.content.toFixed(2)}`) +
+    metricRow('Zhoda hlasu', c.speaker, sc(x.speaker), sc(t.speaker),
+      `${(x.speaker * 100).toFixed(1)} % / ${(t.speaker * 100).toFixed(1)} %`) +
+    metricRow('Výška hlasu', c.f0, 1 - x.f0_diff / (2 * t.f0), 0.5,
+      `${x.f0.toFixed(0)} Hz (ref. ${x.f0_ref.toFixed(0)})`) +
+    metricRow('Dĺžka vety', c.duration, 1 - Math.abs(Math.log(x.dur_ratio)) / (2 * Math.log(1.6)), 0.5,
+      `${(x.dur_ratio * 100).toFixed(0)} % registrácie`);
+}
+function addHistory(r) {
+  history.unshift({t: new Date().toLocaleTimeString('sk-SK'), r});
+  $('#hist').innerHTML = history.slice(0, 50).map(h => `<div class="h"><span class="tm">${h.t}</span>
+    <span class="r ${h.r.ok ? 'ok' : 'bad'}">${h.r.ok ? 'Povolené' : 'Zamietnuté'}</span>
+    <span class="sc">hlas ${(h.r.values.speaker * 100).toFixed(1)} % · veta ${h.r.values.content.toFixed(2)}</span></div>`).join('');
+}
+let rescoreT;
+$('#strict').oninput = e => {
+  $('#strictV').textContent = (+e.target.value).toFixed(2);
+  clearTimeout(rescoreT);
+  rescoreT = setTimeout(async () => {
+    if (!lastResult) return;
+    try { const r = await api('/api/rescore', {user: user(), strictness: +e.target.value}); if (!r.none) { lastResult = r; renderResult(); } } catch (e) {}
+  }, 60);
+};
+
+/* ------------------------------------------------------------ nahrávanie */
+let ctx, stream, analyser, proc, chunks = [], recording = false, t0 = 0, noise = 0, speechSeen = false, lastSpeech = 0;
+async function startRec() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({audio: {channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false}});
+  } catch (e) { toast('Mikrofón nie je dostupný: ' + e.message, true); return; }
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const src = ctx.createMediaStreamSource(stream);
+  analyser = ctx.createAnalyser(); analyser.fftSize = 2048;
+  proc = ctx.createScriptProcessor(2048, 1, 1);
+  chunks = []; noise = 0; speechSeen = false; t0 = performance.now(); recording = true;
+  proc.onaudioprocess = e => {
+    if (!recording) return;
+    const x = e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(x));
+    let s = 0; for (let i = 0; i < x.length; i++) s += x[i] * x[i];
+    const rms = Math.sqrt(s / x.length), el = (performance.now() - t0) / 1000;
+    $('#ring').style.setProperty('--lvl', clamp((20 * Math.log10(rms + 1e-9) + 55) / 45).toFixed(3));
+    if (el < 0.3) { noise = Math.max(noise, rms); return; }
+    if (rms > Math.max(noise * 4, 0.01)) { speechSeen = true; lastSpeech = el; }
+    if (el >= MAX_SEC || (speechSeen && el - lastSpeech > SILENCE_STOP)) stopRec();
+  };
+  src.connect(analyser); src.connect(proc); proc.connect(ctx.destination);
+  $('#mic').classList.add('rec');
+  setState('<b>Počúvam…</b> hovor teraz');
+  tick();
+}
+function tick() {
+  if (!recording) return;
+  const el = (performance.now() - t0) / 1000;
+  $('#hint').textContent = `${el.toFixed(1)} s · zastaví sa samo po odmlke (alebo klikni znova)`;
+  requestAnimationFrame(tick);
+}
+async function stopRec() {
+  if (!recording) return;
+  recording = false;
+  const sr = ctx.sampleRate;
+  proc.disconnect(); stream.getTracks().forEach(t => t.stop());
+  $('#mic').classList.remove('rec'); $('#ring').style.setProperty('--lvl', 0);
+  const len = chunks.reduce((a, c) => a + c.length, 0), y = new Float32Array(len);
+  let o = 0; for (const c of chunks) { y.set(c, o); o += c.length; }
+  ctx.close();
+  $('#hint').textContent = 'Nahrávanie sa zastaví samo, keď prestaneš hovoriť.';
+  await process(y, sr);
+}
+function toPayload(y, sr) {
+  const pcm = new Int16Array(y.length);
+  for (let i = 0; i < y.length; i++) pcm[i] = Math.max(-1, Math.min(1, y[i])) * 32767;
+  const bytes = new Uint8Array(pcm.buffer); let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return {pcm: btoa(bin), sr};
+}
+async function process(y, sr) {
+  busy = true; $('#mic').disabled = true; setState('<b>Analyzujem…</b>');
+  const audio = toPayload(y, sr);
+  try {
+    if (mode === 'enroll') {
+      const c = await api('/api/check', {user: user(), ...audio});
+      enrollSamples.push({...audio, summary: c.summary}); renderSlots();
+      if (enrollSamples.length >= N_ENROLL) {
+        setState('<b>Vytváram šablónu hlasu…</b>');
+        await api('/api/enroll', {user: user(), samples: enrollSamples.map(s => ({pcm: s.pcm, sr: s.sr}))});
+        enrollSamples = []; renderSlots();
+        toast('Heslo zaregistrované. Teraz ho môžeš overiť.');
+        await loadUsers(); await loadProfile(); setMode('verify');
+      } else setMode('enroll');
+    } else {
+      lastResult = await api('/api/verify', {user: user(), strictness: +$('#strict').value, ...audio});
+      renderResult(); addHistory(lastResult);
+      setState(lastResult.ok ? '<b>Overené.</b> Môžeš skúsiť znova.' : '<b>Neoverené.</b> Klikni na mikrofón a skús znova.');
+    }
+  } catch (e) {
+    toast(e.message, true);
+    setState(mode === 'enroll' ? 'Vzorka nebola prijatá – skús to znova' : 'Nahrávka nebola použiteľná – skús to znova');
+  } finally { busy = false; $('#mic').disabled = false; }
+}
+$('#mic').onclick = () => { if (busy) return; recording ? stopRec() : startRec(); };
+
+/* ------------------------------------------------------------ vizualizácia */
+const cv = $('#wave'), g = cv.getContext('2d'); let buf = new Float32Array(2048), ph = 0;
+function draw() {
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+  if (cv.width !== w * dpr) { cv.width = w * dpr; cv.height = h * dpr; }
+  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const live = recording && analyser;
+  if (live) analyser.getFloatTimeDomainData(buf);
+  for (let layer = 0; layer < 2; layer++) {
+    g.beginPath();
+    for (let i = 0; i <= 160; i++) {
+      const x = i / 160 * w, k = Math.floor(i / 160 * (buf.length - 1));
+      const env = Math.sin(Math.PI * i / 160);
+      const a = live ? buf[k] * h * 1.6 : Math.sin(i / 9 + ph + layer) * 3;
+      const yy = h / 2 + a * env * (layer ? 0.55 : 1);
+      i ? g.lineTo(x, yy) : g.moveTo(x, yy);
+    }
+    g.strokeStyle = live ? (layer ? 'rgba(239,91,91,.25)' : 'rgba(239,120,120,.75)') : (layer ? 'rgba(91,140,255,.15)' : 'rgba(91,140,255,.4)');
+    g.lineWidth = layer ? 6 : 1.6; g.stroke();
+  }
+  ph += 0.03; requestAnimationFrame(draw);
+}
+draw();
+
+/* ------------------------------------------------------------ štart */
+renderSlots(); renderResult();
+loadUsers().then(loadProfile).then(() => setMode(profile && profile.status === 'ok' ? 'verify' : 'enroll'));
+</script>
+</body>
+</html>

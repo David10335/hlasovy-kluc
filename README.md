@@ -38,6 +38,40 @@ Prah zhody hlasu 0,93 zodpovedá bodu EER na tomto datasete.
 
 Aplikácia sa potom otvára na celú obrazovku ako bežná aplikácia.
 
+## Štruktúra repozitára
+
+| Súbor / priečinok | Obsah |
+|---|---|
+| `index.html` | zostavená webová aplikácia (GitHub Pages) |
+| `manifest.webmanifest`, ikony | inštalácia na plochu telefónu |
+| `web/core.js` | jadro spracovania reči (VAD, MFCC, DTW, odtlačok hlasu, F0) |
+| `web/page.html` | používateľské rozhranie |
+| `web/build.py` | zostavenie `index.html`: `python web/build.py` |
+| `desktop/` | desktopová verzia v Pythone (`voice_core.py`, `app.py`, `voice_password.py`) |
+| `docs/Hlasovy_kluc_dokumentacia.pdf` | dokumentácia semestrálneho projektu |
+
+Repozitár neobsahuje nahrávky hlasu ani šablóny používateľov (biometrické osobné údaje).
+
+## Spustenie zo zdrojových kódov
+
+```bash
+git clone https://github.com/David10335/hlasovy-kluc.git
+cd hlasovy-kluc
+python -m http.server 8000        # webová verzia → http://localhost:8000
+```
+
+Desktopová verzia (Python 3, NumPy, SciPy):
+
+```bash
+pip install numpy scipy
+cd desktop
+python app.py                     # otvorí http://127.0.0.1:8765
+```
+
+## Autori
+
+Dávid Andrišov, Peter Danko – FEI TUKE, predmet BSB
+
 ## Obmedzenia
 
 - **Prehratie nahrávky (replay attack):** systém nerozlíši živý hlas od kvalitnej nahrávky toho istého človeka. Obranou by bola náhodná výzva (používateľ povie vetu, ktorú vygeneruje systém) alebo detekcia živosti (*liveness detection*).
