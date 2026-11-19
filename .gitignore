@@ -1,3 +1,4 @@
 desktop/templates/
 __pycache__/
 *.wav
+!samples/*.wav
