@@ -2,7 +2,8 @@
 
 Semestrálny projekt na predmet **BSB**, Fakulta elektrotechniky a informatiky, Technická univerzita v Košiciach (2026).
 
-**Autori:** Dávid Andrišov, Peter Danko
+**Autori:** Bc. Dávid Andrišov, Bc. Peter Danko  
+**Vyučujúci:** Ing. Eva Kupcová, PhD.
 
 | | |
 |---|---|
