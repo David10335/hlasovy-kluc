@@ -9,7 +9,6 @@ core = open(os.path.join(HERE, 'core.js'), encoding='utf-8').read().replace(
 page = open(os.path.join(HERE, 'page.html'), encoding='utf-8').read().replace('/*CORE*/', core)
 cut=page.index('</style>')+len('</style>')
 head,body=page[:cut],page[cut:]
-head=head.replace('<meta name="claude:viewport-fit-sides" content="cover">\n','')
 head=head.replace('<meta name="theme-color" content="#0c1018">',
  '<meta name="theme-color" content="#0c1018" media="(prefers-color-scheme: dark)">\n<meta name="theme-color" content="#f3f5f9" media="(prefers-color-scheme: light)">\n'
  '<meta name="description" content="Biometrické heslo pomocou hlasu – registrácia vety a overenie hovoriaceho priamo v prehliadači.">\n'
