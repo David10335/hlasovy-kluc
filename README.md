@@ -1,6 +1,6 @@
 # Hlasový kľúč – biometrické heslo pomocou hlasu
 
-Semestrálny projekt na predmet **BSB**, Fakulta elektrotechniky a informatiky, Technická univerzita v Košiciach (2026).
+Semestrálny projekt na predmet **Biometrické systémy bezpečnosti (BSB)**, Fakulta elektrotechniky a informatiky, Technická univerzita v Košiciach (2026).
 
 **Autori:** Bc. Dávid Andrišov, Bc. Peter Danko  
 **Vyučujúci:** Ing. Eva Kupcová, PhD.
